@@ -1,2 +1,2 @@
 # mutual-information-scaling
-Mutual information estimation and scaling analysis using neural networks
+Implements the mutual information estimation algorithm and scaling analysis carried out in https://arxiv.org/abs/2103.00105.

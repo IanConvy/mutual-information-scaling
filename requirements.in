@@ -1,0 +1,4 @@
+tensorflow == 2.6.5
+matplotlib == 3.3.2
+numpy == 1.19.5
+notebook == 6.5.3

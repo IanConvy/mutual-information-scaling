@@ -1,6 +1,5 @@
 import configparser
 import ast
-import sys
 import math
 import itertools
 
@@ -12,13 +11,9 @@ import image as img
 
 # This module runs the MI estimation experiments.
 
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
-tf.keras.backend.set_session(tf.Session(config=config))
-
 class Model():
 
-    # This class holds the dense feed-forward neural network
+    # This class holds the fully-connected neural network
     # that is used for MI estimation.
 
     def __init__(self, image_shape, settings):
@@ -74,7 +69,7 @@ class Model():
         # The model is trained using early stoppage according to the
         # patience setting.
 
-        self.model.fit_generator(
+        self.model.fit(
             train_itr,
             steps_per_epoch = train_steps,
             epochs = epochs,
@@ -82,7 +77,7 @@ class Model():
             validation_steps = val_steps,
             callbacks =  [tf.keras.callbacks.EarlyStopping(
                 monitor = 'val_loss', min_delta = 0, patience = self.patience, restore_best_weights = True)],
-            verbose = 2
+            verbose = 1
         )
     
     def evaluate_MI(self, image_iterator, num_steps):
@@ -108,8 +103,8 @@ class LogsiticRegression(Model):
 
     # This model uses the cross-entropy as its loss function.
 
-    def __init__(self, model_type, image_shape, settings):
-        Model.__init__(self, model_type, image_shape, settings)
+    def __init__(self, image_shape, settings):
+        Model.__init__(self, image_shape, settings)
         loss_functions = [logistic_loss_joint, logistic_loss_marginal]
         self.compile_model(loss_functions)
 
@@ -117,8 +112,8 @@ class MINE(Model):
 
     # This model uses the MINE loss function.
 
-    def __init__(self, model_type, image_shape, settings):
-        Model.__init__(self, model_type, image_shape, settings)
+    def __init__(self, image_shape, settings):
+        Model.__init__(self, image_shape, settings)
         loss_functions = [biased_MINE_loss_joint, biased_MINE_loss_marginal]
         self.compile_model(loss_functions)
 
@@ -255,44 +250,46 @@ def run_bipartition(inner_length, alg_settings, param_settings):
     (est_mi, direct_mi) = net.evaluate_MI(val_itr, 5000)
     return [est_mi, direct_mi]
 
-# The following code loads settings from the alg.ini and
-# mine.ini configuration files, and then runs the specified
-# experiments.
+if __name__ == "__main__":
 
-alg_parser = configparser.ConfigParser()
-alg_parser.read("alg.ini")
-alg_settings = alg_parser["alg"]
+    # The following code loads settings from the alg.ini and
+    # mine.ini configuration files, and then runs the specified
+    # experiments.
 
-param_parser = configparser.ConfigParser()
-param_parser.read("mine.ini")
-param_settings = param_parser["dense"]
+    alg_parser = configparser.ConfigParser()
+    alg_parser.read("alg.ini")
+    alg_settings = alg_parser["alg"]
 
-algorithm = alg_settings["algorithm"]
-image_type = alg_settings["image_type"]
-strength = alg_settings["strength"]
-start_length = int(alg_settings["start_length"])
-num_images = int(alg_settings["num_images"])
+    param_parser = configparser.ConfigParser()
+    param_parser.read("mine.ini")
+    param_settings = param_parser["dense"]
 
-if image_type in img.rho_values.keys():
-    rho = img.rho_values[image_type][strength]
-else:
-    rho = 0
+    algorithm = alg_settings["algorithm"]
+    image_type = alg_settings["image_type"]
+    strength = alg_settings["strength"]
+    start_length = int(alg_settings["start_length"])
+    num_images = int(alg_settings["num_images"])
 
-max_length = 28
-if start_length < 0: # This code allows for a set of trials to be resumed if interrupted
-    try:
-        MIs = list(np.load("trials/{}_{}_{}_{}.npy".format(algorithm, image_type, rho, num_images)))
-    except FileNotFoundError:
-        print('No prior results found.')
-        MIs = []
-    for length in range(abs(start_length), max_length):
-        print("Length: {}".format(length))
-        mi_pair = run_bipartition(length, alg_settings, param_settings)
-        tf.reset_default_graph()
-        MIs.append(mi_pair)
-        print("\nMI Lower: {} | MI Direct: {}".format(*mi_pair))
-        print("{} - {} - {} - {}".format(algorithm, image_type, rho, num_images))
-        np.save("trials/{}_{}_{}_{}".format(algorithm, image_type, rho, num_images), MIs)
-else:
-    mi = run_bipartition(start_length, alg_settings, param_settings)
-    print(mi)
+    if image_type in img.rho_values.keys():
+        rho = img.rho_values[image_type][strength]
+    else:
+        rho = 0
+
+    max_length = 28
+    if start_length < 0: # This code allows for a set of trials to be resumed if interrupted
+        try:
+            MIs = list(np.load("trials/{}_{}_{}_{}.npy".format(algorithm, image_type, rho, num_images)))
+        except FileNotFoundError:
+            print('No prior results found.')
+            MIs = []
+        for length in range(abs(start_length), max_length):
+            print("Length: {}".format(length))
+            mi_pair = run_bipartition(length, alg_settings, param_settings)
+            tf.reset_default_graph()
+            MIs.append(mi_pair)
+            print("\nMI Lower: {} | MI Direct: {}".format(*mi_pair))
+            print("{} - {} - {} - {}".format(algorithm, image_type, rho, num_images))
+            np.save("trials/{}_{}_{}_{}".format(algorithm, image_type, rho, num_images), MIs)
+    else:
+        mi = run_bipartition(start_length, alg_settings, param_settings)
+        print(mi)

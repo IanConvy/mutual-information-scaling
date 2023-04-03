@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import matplotlib.patches as mpatches
 
-# This module is used to process image data for the MI estimation task
+# This module is used to process image data for the MI estimation task. Note that
+# much of the code here is non-functional without the associated data.
 
 rho_values = { # These are the correlation values for the Gaussiam Markov fields
     "area": {"small": -0.12, "large": -0.227},

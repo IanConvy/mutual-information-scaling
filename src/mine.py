@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow import keras as ks
 import numpy as np
 
-import image as img
+from src import image as img
 
 # This module runs the MI estimation experiments.
 
@@ -276,12 +276,8 @@ if __name__ == "__main__":
         rho = 0
 
     max_length = 28
-    if start_length < 0: # This code allows for a set of trials to be resumed if interrupted
-        try:
-            MIs = list(np.load("trials/{}_{}_{}_{}.npy".format(algorithm, image_type, rho, num_images)))
-        except FileNotFoundError:
-            print('No prior results found.')
-            MIs = []
+    if start_length < 0:
+        MIs = []
         for length in range(abs(start_length), max_length):
             print("Length: {}".format(length))
             mi_pair = run_bipartition(length, alg_settings, param_settings)
@@ -289,7 +285,6 @@ if __name__ == "__main__":
             MIs.append(mi_pair)
             print("\nMI Lower: {} | MI Direct: {}".format(*mi_pair))
             print("{} - {} - {} - {}".format(algorithm, image_type, rho, num_images))
-            np.save("trials/{}_{}_{}_{}".format(algorithm, image_type, rho, num_images), MIs)
     else:
         mi = run_bipartition(start_length, alg_settings, param_settings)
         print(mi)

@@ -11,9 +11,9 @@ This notebook provides an overview of the experiments and analysis in [Convy et 
 
 This work focuses on a quantity called the _mutual information_ (MI), which describes the dependence between two variables $a$ and $b$ obeying the joint probability distribution $p(a, b)$. It is defined as the difference between the entropy of $p(a)p(b)$, which is the product of the marginal distributions, and the entropy of $p(a, b)$:
 
-\begin{equation}
+$$
 \text{MI}(a,b) = \text{S}[p(a)p(b)] - \text{S}[p(a, b)] = \text{S}[p(a)] + \text{S}[p(b)] - \text{S}[p(a,b)],
-\end{equation}
+$$
 
 where $\text{S}$ is the usual Shannon entopy. The MI can be qualitatively understood as a generalization of the Pearson correlation coefficient to non-linear relationships between variables, and it serves as the most general measure of dependence. This means that a non-zero correlation coefficient always implies a non-zero MI value, but the converse is not necessarily true.
 
